@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "55838052868",
+    "firebase_url": "https://checkark-3722c.firebaseio.com",
+    "project_id": "checkark-3722c",
+    "storage_bucket": "checkark-3722c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55838052868:android:6ad69cc719fc64fb",
+        "android_client_info": {
+          "package_name": "com.cowooding.checkark"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "55838052868-3btagqnefa4iq59cvsnac8mmt24d74gh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6A8hW6j2ZLAbiDPvKem93MsqKC_Episs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
