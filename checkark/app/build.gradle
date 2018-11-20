@@ -6,8 +6,8 @@ android {
         applicationId "com.cowooding.checkark"
         minSdkVersion 15
         targetSdkVersion 27
-        versionCode 5
-        versionName "1.0.4"
+        versionCode 6
+        versionName "1.1.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -28,6 +28,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:16.0.3'
     implementation 'com.google.firebase:firebase-messaging:17.3.3'
     implementation 'com.google.firebase:firebase-auth:16.0.4'
+    implementation 'com.google.firebase:firebase-core:16.0.5'
     implementation 'com.squareup.okhttp3:okhttp:3.2.0'
 
 
