@@ -1,5 +1,7 @@
 package com.cowooding.checkark;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
     String key;
     ArrayList<String> server;
+    int message;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
         layout_main = (ConstraintLayout)findViewById(R.id.layout_main);
         tv_check = (TextView) findViewById(R.id.tv_check);
 
-        //오래 걸리는 작업인지 2개를 하거나 위치를 옮기면 문제가 발생
+        SharedPreferences mdata = getSharedPreferences("mdata", Activity.MODE_PRIVATE);
+        message=mdata.getInt("data",0);
+
         getCheckList();
 
         DatabaseReference mReference = mDatabase.getReference("docs/titles"); // 변경값을 확인할 child 이름
@@ -57,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                 if((token = FirebaseInstanceId.getInstance().getToken())!=null) {
                     setToken(token);
                 }
-
+                //데이터 변화가 있을 때 시간을 측정
                 String time = getTime();
                 String month = time.substring(5,7);
                 String day = time.substring(8,10);
@@ -73,15 +78,27 @@ public class MainActivity extends AppCompatActivity {
                             //관리자 폰일 때 메세지 전송
                             if ((token = FirebaseInstanceId.getInstance().getToken()) != null && token.equals("eDjOtS6mUJQ:APA91bGDlQa2YCvdRXP3yFCB0lR_d0oZuh_EKt32Fee28mnZF2kZSFSWCeYMuTAZkrlL_X2EerX5CP48bRFkZeLUCQw7v53_hdF0s922JEHHABKssi0soGPwDa-g-4nKpCriaktcG6-3"))
                             {
-                                NotiCheck(title);
+                                if(message==0) {
+                                    message=1;
+                                    SharedPreferences mdata = getSharedPreferences("mdata", Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor messagedata = mdata.edit();
+                                    messagedata.putInt("data",message);
+                                    messagedata.commit();
+                                    NotiCheck(title);
+                                }
                             }
                             //점검이 완료되면 더이상 db를 검사하지 않음
                             break;
                         }
                         //완료되지 않았으면
                         else{
-                            tv_check.setText("점검중");
+                            tv_check.setText("점검이 있을 예정이거나 \n 점검중입니다.");
                             layout_main.setBackgroundColor(Color.rgb(212,42,35));
+                            message=0;
+                            SharedPreferences mdata = getSharedPreferences("mdata", Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor messagedata = mdata.edit();
+                            messagedata.putInt("data",message);
+                            messagedata.commit();
                             //점검중이면 더이상 db를 검사하지 않음
                             break;
                         }
@@ -96,19 +113,32 @@ public class MainActivity extends AppCompatActivity {
                             //관리자 폰일 때 메세지 전송
                             if ((token = FirebaseInstanceId.getInstance().getToken()) != null && token.equals("eDjOtS6mUJQ:APA91bGDlQa2YCvdRXP3yFCB0lR_d0oZuh_EKt32Fee28mnZF2kZSFSWCeYMuTAZkrlL_X2EerX5CP48bRFkZeLUCQw7v53_hdF0s922JEHHABKssi0soGPwDa-g-4nKpCriaktcG6-3"))
                             {
-                                NotiCheck(title);
+                                if(message==0) {
+                                    message=1;
+                                    SharedPreferences mdata = getSharedPreferences("mdata", Activity.MODE_PRIVATE);
+                                    SharedPreferences.Editor messagedata = mdata.edit();
+                                    messagedata.putInt("data",message);
+                                    messagedata.commit();
+                                    NotiCheck(title);
+                                }
                             }
                             //점검이 완료되면 더이상 db를 검사하지 않음
                             break;
                         }
                         //완료되지 않았으면
                         else {
-                            tv_check.setText("점검중");
+                            tv_check.setText("점검중입니다.");
+                            layout_main.setBackgroundColor(Color.rgb(212,42,35));
+                            message=0;
+                            SharedPreferences mdata = getSharedPreferences("mdata", Activity.MODE_PRIVATE);
+                            SharedPreferences.Editor messagedata = mdata.edit();
+                            messagedata.putInt("data",message);
+                            messagedata.commit();
                         }
                     }
                     //크롤러로 공지를 최신화하지 않았거나 오늘도 어제도 점검이 없는 경우
                     else{
-                        tv_check.setText("프로그램이 동작 전이거나\n 오늘 자 점검이 없습니다.");
+                        tv_check.setText("프로그램이 동작 전이거나 \n 점검이 없습니다.");
                     }
                 }
             }
@@ -208,39 +238,39 @@ public class MainActivity extends AppCompatActivity {
         mReference_msg.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot messageData : dataSnapshot.getChildren()) {
-                    //final String user_token = "eDjOtS6mUJQ:APA91bGDlQa2YCvdRXP3yFCB0lR_d0oZuh_EKt32Fee28mnZF2kZSFSWCeYMuTAZkrlL_X2EerX5CP48bRFkZeLUCQw7v53_hdF0s922JEHHABKssi0soGPwDa-g-4nKpCriaktcG6-3"; //테스트
-                    final String user_token = messageData.getValue().toString();
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                // FMC 메시지 생성 start
-                                JSONObject root = new JSONObject();
-                                JSONObject notification = new JSONObject();
-                                notification.put("body", server_name + " " + check_name + " " + "점검이 완료되었습니다.");
-                                notification.put("title", getString(R.string.app_name));
-                                root.put("notification", notification);
-                                root.put("to", user_token);
-                                // FMC 메시지 생성 end
+                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
+                //final String user_token = "eDjOtS6mUJQ:APA91bGDlQa2YCvdRXP3yFCB0lR_d0oZuh_EKt32Fee28mnZF2kZSFSWCeYMuTAZkrlL_X2EerX5CP48bRFkZeLUCQw7v53_hdF0s922JEHHABKssi0soGPwDa-g-4nKpCriaktcG6-3"; //테스트
+                final String user_token = messageData.getValue().toString();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            // FMC 메시지 생성 start
+                            JSONObject root = new JSONObject();
+                            JSONObject notification = new JSONObject();
+                            notification.put("body", server_name + " " + check_name + " " + "점검이 완료되었습니다.");
+                            notification.put("title", getString(R.string.app_name));
+                            root.put("notification", notification);
+                            root.put("to", user_token);
+                            // FMC 메시지 생성 end
 
-                                URL Url = new URL(FCM_MESSAGE_URL);
-                                HttpURLConnection conn = (HttpURLConnection) Url.openConnection();
-                                conn.setRequestMethod("POST");
-                                conn.setDoOutput(true);
-                                conn.setDoInput(true);
-                                conn.addRequestProperty("Authorization", "key=" + key);
-                                conn.setRequestProperty("Accept", "application/json");
-                                conn.setRequestProperty("Content-type", "application/json");
-                                OutputStream os = conn.getOutputStream();
-                                os.write(root.toString().getBytes("utf-8"));
-                                os.flush();
-                                conn.getResponseCode();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            URL Url = new URL(FCM_MESSAGE_URL);
+                            HttpURLConnection conn = (HttpURLConnection) Url.openConnection();
+                            conn.setRequestMethod("POST");
+                            conn.setDoOutput(true);
+                            conn.setDoInput(true);
+                            conn.addRequestProperty("Authorization", "key=" + key);
+                            conn.setRequestProperty("Accept", "application/json");
+                            conn.setRequestProperty("Content-type", "application/json");
+                            OutputStream os = conn.getOutputStream();
+                            os.write(root.toString().getBytes("utf-8"));
+                            os.flush();
+                            conn.getResponseCode();
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    }).start();
+                    }
+                }).start();
                 }
             }
 
